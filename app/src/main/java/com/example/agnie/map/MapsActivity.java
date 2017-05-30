@@ -19,6 +19,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -67,6 +69,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -93,78 +96,46 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
-    protected String getRequest(String url) throws IOException {
-        // Make a URL out of the string and connect to it
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
-        // optional default is GET
-        con.setRequestMethod("GET");
 
-        int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'GET' request to URL : " + url);
-        System.out.println("Response Code : " + responseCode);
-
-        // Read the response lines
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-
-        System.out.println(response.toString());
-        return response.toString();
+    protected String getEventsURL(String id)  {
+        return String.format("http://devety.com:5000/events?id=%s", id);
     }
 
-    protected String getEventById(String id) throws IOException {
-        String url = String.format("http://devety.com:5000/events?id=%s", id);
-        return this.getRequest(url);
-    }
-
-    protected String getPlaceById(String id) throws IOException {
-        String url = String.format("http://devety.com:5000/places?id=%s", id);
-        return this.getRequest(url);
+    protected String getPlacesURL(String id)  {
+        return String.format("http://devety.com:5000/places?id=%s", id);
     }
 
 
-    protected String getEventsByLocation (float lat, float lon, float meters) throws IOException {
-        String url = String.format("http://devety.com:5000/events?lat=%f&lon=%f&dist=%f", lat, lon, meters);
-        return this.getRequest(url);
+    protected String getEventsURL (float lat, float lon, float meters)  {
+        return String.format("http://devety.com:5000/events?lat=%f&lon=%f&dist=%f", lat, lon, meters);
     }
 
-    protected String getPlacesByLocation (float lat, float lon, float meters) throws IOException {
-        String url = String.format("http://devety.com:5000/places?lat=%f&lon=%f&dist=%f", lat, lon, meters);
-        return this.getRequest(url);
+    protected String getPlacesURL (float lat, float lon, float meters)  {
+        return String.format("http://devety.com:5000/places?lat=%f&lon=%f&dist=%f", lat, lon, meters);
     }
 
-    protected String getAllEventIds() throws IOException {
-        String url = "http://devety.com:5000/events";
-        return this.getRequest(url);
+    protected String getEventsURL()  {
+        return "http://devety.com:5000/events";
     }
 
-    protected String getAllPlaceIds() throws IOException {
-        String url = "http://devety.com:5000/places";
-        return this.getRequest(url);
+    protected String getPlacesURL()  {
+        return "http://devety.com:5000/places";
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        try {
-            // Example usage
-            System.out.println(this.getAllEventIds());
-            System.out.println(this.getAllPlaceIds());
-            System.out.println(this.getEventById("1038711659595725"));
-            System.out.println(this.getPlaceById("103964593108277"));
-            System.out.println(this.getEventsByLocation(51.1f, 17.01f, 1000.0f));
-            System.out.println(this.getPlacesByLocation(51.1f, 17.01f, 1000.0f));
-        } catch (IOException e) {
-            System.out.println(e);
-        }
+        
+        FetchDataTask fdt = new FetchDataTask();
+        // Example usage
+        System.out.println(fdt.doInBackground(this.getEventsURL()));
+        System.out.println(fdt.doInBackground(this.getEventsURL()));
+        System.out.println(fdt.doInBackground(this.getEventsURL("1038711659595725")));
+        System.out.println(fdt.doInBackground(this.getEventsURL("103964593108277")));
+        System.out.println(fdt.doInBackground(this.getEventsURL(51.1f, 17.01f, 1000.0f)));
+        System.out.println(fdt.doInBackground(this.getEventsURL(51.1f, 17.01f, 1000.0f)));
+
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(51.108, 17.0405);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
