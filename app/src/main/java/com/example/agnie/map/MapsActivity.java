@@ -92,7 +92,18 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.InfoWind
         this.mMap.setInfoWindowAdapter(this);
         // Blue location dot
         googleMap.setMyLocationEnabled(true);
-        this.updateMap();
+
+        Event e;
+        Marker tempMarker;
+        for(Map.Entry<String, Event> entry : this.events.entrySet()) {
+            e = entry.getValue();
+            if (this.eventMarkers.get(e) == null) {
+                BitmapDescriptor bit = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+                tempMarker = this.mMap.addMarker(new MarkerOptions().icon(bit).position(e.place.getLatLng()).title(e.getName()).snippet(e.getDescription()));
+                this.markerEvents.put(tempMarker, e);
+                this.eventMarkers.put(e, tempMarker);
+            }
+        }
 
     }
 
@@ -120,7 +131,30 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.InfoWind
         String provider = locationmanager.getBestProvider(cr, true);
         this.currentLocation = locationmanager.getLastKnownLocation(provider);
         // <Initial> Update events and display them
-        this.updateEvents();
+        try {
+            JSONArray loc_events = this.getEventsByLocation(this.currentLocation.getLatitude(), this.currentLocation.getLongitude(), this.searchRange);
+            JSONObject eventJSON, placeJSON;
+            Place tempPlace;
+            Event tempEvent;
+
+            for (int i = 0; i < loc_events.length(); i++) {
+                eventJSON = loc_events.getJSONObject(i);
+                tempPlace = this.places.get(eventJSON.getJSONObject("place").getString("id"));
+                if (tempPlace == null) {
+                    placeJSON = eventJSON.getJSONObject("place");
+                    tempPlace = new Place(new LatLng(placeJSON.getDouble("lat"), placeJSON.getDouble("lon")), placeJSON.getString("id"));
+                    this.places.put(tempPlace.getId(), tempPlace);
+                }
+                tempEvent = this.events.get(eventJSON.getString("id"));
+                if (tempEvent == null) {
+                    tempEvent = new Event(tempPlace,
+                            eventJSON.getString("id"), eventJSON.getString("name"), eventJSON.getString("description"), new Date((long) eventJSON.getInt("start_time") * 1000));
+                    events.put(tempEvent.getId(), tempEvent);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         System.out.println("Number of events: " + events.size());
 
     }
@@ -167,9 +201,43 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.InfoWind
     public void onLocationChanged(Location location) {
         System.out.println("New location : " + location.toString());
         this.currentLocation = location;
-        this.updateEvents();
+        try {
+            JSONArray loc_events = this.getEventsByLocation(this.currentLocation.getLatitude(), this.currentLocation.getLongitude(), this.searchRange);
+            JSONObject eventJSON, placeJSON;
+            Place tempPlace;
+            Event tempEvent;
+
+            for (int i = 0; i < loc_events.length(); i++) {
+                eventJSON = loc_events.getJSONObject(i);
+                tempPlace = this.places.get(eventJSON.getJSONObject("place").getString("id"));
+                if (tempPlace == null) {
+                    placeJSON = eventJSON.getJSONObject("place");
+                    tempPlace = new Place(new LatLng(placeJSON.getDouble("lat"), placeJSON.getDouble("lon")), placeJSON.getString("id"));
+                    this.places.put(tempPlace.getId(), tempPlace);
+                }
+                tempEvent = this.events.get(eventJSON.getString("id"));
+                if (tempEvent == null) {
+                    tempEvent = new Event(tempPlace,
+                            eventJSON.getString("id"), eventJSON.getString("name"), eventJSON.getString("description"), new Date((long) eventJSON.getInt("start_time") * 1000));
+                    events.put(tempEvent.getId(), tempEvent);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         System.out.println("Number of events: " + events.size());
-        this.updateMap();
+        Event e;
+        Marker tempMarker;
+        for(Map.Entry<String, Event> entry : this.events.entrySet()) {
+            e = entry.getValue();
+            if (this.eventMarkers.get(e) == null) {
+                BitmapDescriptor bit = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+                tempMarker = this.mMap.addMarker(new MarkerOptions().icon(bit).position(e.place.getLatLng()).title(e.getName()).snippet(e.getDescription()));
+                this.markerEvents.put(tempMarker, e);
+                this.eventMarkers.put(e, tempMarker);
+            }
+        }
+        // this is straight out heresy btw
     }
 
     // INFO WINDOW
