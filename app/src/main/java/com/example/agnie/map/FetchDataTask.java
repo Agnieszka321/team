@@ -2,7 +2,6 @@ package com.example.agnie.map;
 
 import android.os.AsyncTask;
 import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +39,9 @@ public class FetchDataTask extends AsyncTask<String, Void, JSONArray> {
             connection.setReadTimeout(3000000);
             connection.setRequestMethod("GET");
             System.out.println(urlCould);
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
+            connection.setRequestMethod("GET");
             connection.connect();
 
             inputStream = connection.getInputStream();
@@ -80,4 +82,5 @@ public class FetchDataTask extends AsyncTask<String, Void, JSONArray> {
 
     protected void onPostExecute(String string) {
     }
+
 }

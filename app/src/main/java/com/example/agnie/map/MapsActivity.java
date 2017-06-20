@@ -373,4 +373,5 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.InfoWind
     public static final int PERMISSION_ACCESS_FINE_LOCATION = 0;
 
 
+
 }
